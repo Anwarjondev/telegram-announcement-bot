@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: telegram-announcement-bot
+    runtime: go
+    repo: https://github.com/Anwarjondev/telegram-announcement-bot
+    branch: master
+    buildCommand: go build -o bot .
+    startCommand: ./bot
+    envVars:
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false

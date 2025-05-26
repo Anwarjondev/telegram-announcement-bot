@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/Anwarjondev/telegram-announcement-bot/bot"
 	"github.com/Anwarjondev/telegram-announcement-bot/config"
@@ -44,6 +45,12 @@ func main() {
 	// Initialize web server
 	server := web.NewServer(db, cfg, bot.GetAPI())
 
+	// Determine the port to listen on
+	port := cfg.WebPort
+	if renderPort := os.Getenv("PORT"); renderPort != "" {
+		port = renderPort
+	}
+
 	// Start bot in a goroutine
 	go func() {
 		log.Println("Starting bot...")
@@ -51,7 +58,7 @@ func main() {
 	}()
 
 	// Start web server
-	log.Printf("Starting web server on port %s...\n", cfg.WebPort)
+	log.Printf("Starting web server on port %s...\n", port)
 	if err := server.Start(); err != nil {
 		log.Fatal("Failed to start web server:", err)
 	}
