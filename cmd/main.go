@@ -42,7 +42,7 @@ func main() {
 	}
 
 	// Initialize web server
-	server := web.NewServer(db, cfg)
+	server := web.NewServer(db, cfg, bot.GetAPI())
 
 	// Start bot in a goroutine
 	go func() {

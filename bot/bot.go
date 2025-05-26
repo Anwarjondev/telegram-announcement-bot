@@ -40,6 +40,11 @@ func NewBot(cfg *config.Config, db *gorm.DB) (*Bot, error) {
 	}, nil
 }
 
+// GetAPI returns the Telegram Bot API instance
+func (b *Bot) GetAPI() *tgbotapi.BotAPI {
+	return b.api
+}
+
 func (b *Bot) Start() {
 	log.Printf("Starting bot...")
 	log.Printf("Bot username: %s", b.api.Self.UserName)
@@ -172,27 +177,27 @@ func (b *Bot) handleChannelMessage(message *tgbotapi.Message) {
 				b.api.Send(msg)
 				return
 			}
-		
+
 			successCount := 0
 			failedChannels := []string{}
-		
+
 			for _, channel := range channels {
 				// Verify channel access before sending
 				// Log the channel ID being used for verification
 				log.Printf("Attempting to verify channel with ID: %d and Name: %s", channel.ChannelID, channel.ChannelName)
-		
+
 				_, err := b.api.GetChat(tgbotapi.ChatInfoConfig{
 					ChatConfig: tgbotapi.ChatConfig{
 						ChatID: channel.ChannelID,
 					},
 				})
-		
+
 				if err != nil {
 					log.Printf("Error verifying channel %s (%d): %v", channel.ChannelName, channel.ChannelID, err)
 					failedChannels = append(failedChannels, channel.ChannelName)
 					continue
 				}
-		
+
 				// Check if bot is an admin in the channel
 				member, err := b.api.GetChatMember(tgbotapi.GetChatMemberConfig{
 					ChatConfigWithUser: tgbotapi.ChatConfigWithUser{
@@ -200,17 +205,17 @@ func (b *Bot) handleChannelMessage(message *tgbotapi.Message) {
 						UserID: b.api.Self.ID,
 					},
 				})
-		
+
 				if err != nil || !member.IsAdministrator() && !member.IsCreator() {
 					log.Printf("Bot is not an admin in channel %s (%d)", channel.ChannelName, channel.ChannelID)
 					failedChannels = append(failedChannels, channel.ChannelName)
 					continue
 				}
-		
+
 				msg := tgbotapi.NewMessage(channel.ChannelID, message.Text)
 				// Log the channel ID and message text before sending
 				log.Printf("Attempting to send message to channel with ID: %d. Message text snippet: \"%s...\"", channel.ChannelID, message.Text[:min(len(message.Text), 50)])
-		
+
 				if _, err := b.api.Send(msg); err != nil {
 					log.Printf("Error forwarding message to channel %s (%d): %v", channel.ChannelName, channel.ChannelID, err)
 					failedChannels = append(failedChannels, channel.ChannelName)
